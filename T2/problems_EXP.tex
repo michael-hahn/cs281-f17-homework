@@ -59,3 +59,125 @@ Give an maximum likelihood estimation approach for the specified parts of the mo
 
 \end{enumerate}
 \end{problem}
+\begin{enumerate}
+\item The likelihood can be written as
+\[
+\prod_{n} (1-\pi)^{\mathbf{1}\{y_{n} = 0\}}(\pi\frac{f(y_{n}\mid \mathbf{x})}{1 - f(0\mid \mathbf{x})})^{1-\mathbf{1}\{y_{n} = 0\}}
+\]
+Thus we take log of the likelihood function above, and obtain:
+\begin{align}
+	& \sum_{n}log[(1-\pi)^{\mathbf{1}\{y_{n} = 0\}}(\pi\frac{f(y_{n}\mid \mathbf{x})}{1 - f(0\mid \mathbf{x})})^{1-\mathbf{1}\{y_{n} = 0\}}] \nonumber \\
+	& = \sum_{n}(log(1-\pi)^{\mathbf{1}\{y_{n} = 0\}} + log(\pi\frac{f(y_{n}\mid \mathbf{x})}{1 - f(0\mid \mathbf{x})})^{1-\mathbf{1}\{y_{n} = 0\}}) \nonumber \\
+	& = \sum_{n}\mathbf{1}\{y_{n} = 0\}log(1-\sigma(\mathbf{x}^\top\mathbf{w}_{1})) + (1-\mathbf{1}\{y_{n} = 0\})log(\sigma(\mathbf{x}^\top\mathbf{w}_{1})\frac{f(y_n\mid \mathbf{x})}{1 - f(0\mid \mathbf{x})})\nonumber
+\end{align}
+
+To calculate the maximum likelihood estimate for $\mathbf{w_{1}}$, we can numerically solve (for example using SGD)
+\[
+argmax_{\mathbf{w_1}}\sum_{n}\mathbf{1}\{y_{n} = 0\}log(1-\sigma(\mathbf{x}^\top\mathbf{w}_{1})) + (1-\mathbf{1}\{y_{n} = 0\})log(\sigma(\mathbf{x}^\top\mathbf{w}_{1})\frac{f(y_n\mid \mathbf{x})}{1 - f(0\mid \mathbf{x})}) 
+\]
+
+\item The truncated-at-zero Poisson distribution is
+\[
+P(y \mid x) = \frac{e^{-\lambda}\frac{\lambda^y}{y!}}{1-e^{-\lambda}} = \frac{1}{e^\lambda - 1}\frac{\lambda^y}{y!} (y = 1, 2, 3, \cdots)
+\]
+We manipulate the terms and obtain:
+\[
+P(y \mid x) = \frac{1}{e^\lambda - 1} \frac{1}{y!}exp\{ylog\lambda\}
+\]
+According to the form of the exponential family:
+\[
+p(\mathbf{x}\mid\mathbf{\theta}) = \frac{1}{Z(\theta)}h(\mathbf{x})exp[\theta^T\phi(\mathbf{x})]
+\]
+We have:
+\begin{align}
+\text{partition function} & = e^\lambda - 1 \nonumber \\
+\text{scaling constant} &= \frac{1}{y!} \nonumber \\
+\text{sufficient statistics} &= y \nonumber \\
+\text{natural parameter} & = log\lambda \nonumber
+\end{align}
+To get its log-partition function, we take log of the partition function:
+\[
+\text{log-partition function} = log(e^\lambda - 1)
+\]
+
+\item
+The mean of a truncated Poisson model with mean parameter $\lambda$ can be derived as such:
+\begin{align}
+\E(Y) & = \sum_{y = 1}^{\infty} y\frac{1}{e^\lambda - 1}\frac{\lambda^y}{y!} \nonumber \\
+& = \frac{1}{e^\lambda - 1}\sum_{y = 1}^{\infty}\frac{\lambda^y}{(y-1)!} \label{eq1}
+\end{align}
+Notice that for a regular Poisson distribution, we have:
+\begin{align}
+\E(Y) & = \sum_{y = 0}^{\infty} y\frac{e^{-\lambda}\lambda^y}{y!} \nonumber \\
+& = \sum_{y = 1}^{\infty} y\frac{e^{-\lambda}\lambda^y}{y!} \nonumber \\
+& = e^{-\lambda}\sum_{y = 1}^{\infty}\frac{\lambda^y}{(y-1)!} \label{eq2} \\
+& = \lambda \nonumber
+\end{align}
+From (\ref{eq2}), we know that
+\begin{align}
+\sum_{y = 1}^{\infty}\frac{\lambda^y}{(y-1)!} = \lambda e^{\lambda} \label{eq3}
+\end{align}
+Use (\ref{eq3}) in (\ref{eq1}), we obtain the mean of the zero-truncated Poisson distribution:
+\[
+\E(Y) = \frac{\lambda e^{\lambda}}{e^\lambda - 1}
+\]
+We can derive the variance of a truncated Poisson model similarly as such:
+\begin{align}
+var(Y) & = \E(Y^2) - [\E(Y)]^2 \nonumber \\
+& = \sum_{y = 1}^{\infty} y^2\frac{1}{e^\lambda - 1}\frac{\lambda^y}{y!} - [\E(Y)]^2 \nonumber \\
+& = \frac{1}{e^\lambda - 1}\sum_{y = 1}^{\infty}y\frac{\lambda^y}{(y-1)!} - [\E(Y)]^2 \nonumber
+\end{align}
+Notice that for a regular Poisson distribution, we have:
+\begin{align}
+var(Y) & = \sum_{y = 0}^{\infty} y^2 \frac{e^{-\lambda}\lambda^y}{y!} - [\E(Y)]^2 \nonumber \\
+& = \sum_{y = 1}^{\infty} y^2 \frac{e^{-\lambda}\lambda^y}{y!} - [\E(Y)]^2 \nonumber \\
+& = e^{-\lambda}\sum_{y = 1}^{\infty} y\frac{\lambda^y}{(y-1)!} - \lambda \label{eq4} \\
+& = \lambda \nonumber
+\end{align}
+From (\ref{eq4}), we know that:
+\begin{align}
+\sum_{y = 1}^{\infty} y\frac{\lambda^y}{(y-1)!} & = (\lambda + \lambda^2)e^\lambda \label{eq5}
+\end{align}
+Use (\ref{eq5}), we obtain the variance of the zero-truncated Poisson distribution:
+\begin{align}
+var(Y) & = \frac{(\lambda + \lambda^2)e^\lambda}{e^\lambda - 1} - \frac{(\lambda e^\lambda)^2}{(e^\lambda - 1)^2} \nonumber \\
+& = \frac{\lambda + \lambda^2}{1 - e^\lambda} -  \frac{\lambda^2}{(1 - e^\lambda)^2} \nonumber 
+\end{align}
+We can also derive the same expectation by taking the derivative of the log-partition function with respect to $\theta$, where
+\[
+\theta = log\lambda
+\]
+and get the same variance by taking its second derivative.
+
+We want to calculate the maximum likelihood of 
+\[
+\prod_{n}\frac{1}{e^\lambda - 1}\frac{\lambda^y}{y!}
+\]
+We take the log and get the log-likelihood
+\begin{align}
+& \sum_{n}[log(\frac{1}{e^\lambda - 1}) + log(\frac{\lambda^y}{y!})] \nonumber \\
+& = \sum_{n}[log(\lambda^y) - log(e^\lambda - 1)] - nlog(y!) \nonumber
+\end{align}
+Thus, we can get the maximum likelihood estimate of $\lambda$ by solving numerically the following:
+\[
+argmax_{\lambda}\sum_{n}[log(\lambda^y) - log(e^\lambda - 1)] - nlog(y!) 
+\]
+
+\item The hurdle model can be represented as
+\begin{align}
+P(y_i \mid \pi, \lambda) & = (1 - \pi)^{\mathbf{1}\{y_i = 0\}}(\pi\frac{f(y_i \mid x)}{1 - f(0 \mid x)})^{1 - \mathbf{1}\{y_i = 0\}} \nonumber \\
+& = exp\{\mathbf{1}\{y_i = 0\}log(1-\pi) + (1 - \mathbf{1}\{y_i = 0\})log(\pi\frac{e^{-\lambda}\frac{\lambda^{y_{i}}}{y_{i}!}}{1 - e^{-\lambda}})\} \nonumber \\
+& = exp\{\mathbf{1}\{y_i = 0\}log(1-\pi) + (1 - \mathbf{1}\{y_i = 0\})(log\pi - log(e^{-\lambda} - 1) + y_{i}log\lambda - log(y_i!))\} \nonumber 
+\end{align}
+\[
+= (1 - \mathbf{1}\{y_i = 0\})y_{i}log\lambda - (1 - \mathbf{1}\{y_i = 0\})log(e^\lambda - 1) + log\pi - \mathbf{1}\{y_i = 0\}log\frac{\pi}{1 - \pi} - (1 - \mathbf{1}\{y_i = 0\})log(y_{i}!)
+\]
+
+Sufficient statistics: $(1 - \mathbf{1}\{y = 0\})y_{i}$.
+
+The log-likelihood (assuming N data samples) is thus:
+\[
+\sum_{N} \{\mathbf{1}\{y_i = 0\}log(1-\pi) + (1 - \mathbf{1}\{y_i = 0\})(log\pi - log(e^{-\lambda} - 1) + y_{i}log\lambda - log(y_i!))\} 
+\]
+\end{enumerate}
+
